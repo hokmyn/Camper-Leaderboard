@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="application-name" content="Camper Leaderboard" />
+    <meta name="author" content="Denis Kalinin" />
+    <title>Camper Leaderboard</title>
+    <!-- stylesheets -->    
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+    <div id="wrapper"></div>
+    <!-- Javascript -->
+    <script src="https://unpkg.com/babel-core@5.8.38/browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.4.2/react-dom.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/0.3.6/marked.min.js"></script>
+    <script type="text/babel">
+      class Campers extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      users: []
+    };
+  }
+  render() {    
+    if(this.props.show) {
+      $.getJSON('https://fcctop100.herokuapp.com/api/fccusers/top/recent')
+        .done((data) => {
+          this.setState({
+            users: data
+          });
+        });
+    } else {
+      $.getJSON('https://fcctop100.herokuapp.com/api/fccusers/top/alltime')
+        .done((data) => {
+          this.setState({
+            users: data
+          });
+        });
+    }
+    const imgStyles = {
+      width: 40,
+      height: 40
+    };
+    const persons = this.state.users.map((person, index) => {
+      return <tr>
+              <td>{index}</td>
+              <td className='uname'>
+                
+                <a href={"https://www.freecodecamp.com/" + person.username}
+                  target="_blank">
+                  <img src={person.img} style={imgStyles} />
+                  {person.username}
+                </a>
+              </td>
+              <td>{person.recent}</td>
+              <td>{person.alltime}</td>
+             </tr>
+    });
+    
+    return(
+      <tbody>{persons}</tbody>
+    );
+  }
+}
+class LeaderBoard extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      recent: true
+    };
+    this.showRecent = this.showRecent.bind(this);
+    this.showAll = this.showAll.bind(this);
+  }
+  showRecent(e) {
+    e.preventDefault();
+    if($(e.target).hasClass('active')) {
+      return null;
+    } else {
+      $(e.target).addClass('active');
+      $('.aPoints').removeClass('active'); 
+    }
+    this.setState({
+      recent: true
+    });    
+  }
+  showAll(e) {
+    e.preventDefault();
+    if($(e.target).hasClass('active')) {
+      return null;
+    } else {
+      $(e.target).addClass('active');
+      $('.rPoints').removeClass('active'); 
+    }
+    this.setState({
+      recent: false
+    });    
+  }
+  render() {
+    return (
+      <div>
+      <h1>Camper Leaderboard</h1>
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Member Name</th>
+            <th>
+              <a href='#' className='rPoints active' onClick={this.showRecent}>Points in past 30 days</a>
+            </th>
+            <th>
+              <a href='#' className='aPoints' onClick={this.showAll}>All time Points</a>
+            </th>
+          </tr>
+        </thead>
+        <Campers show={this.state.recent} />
+      </table>
+      </div>
+    );
+  }
+}
+
+ReactDOM.render(
+  <LeaderBoard />,
+  document.getElementById('wrapper')
+)
+    </script>
+</body>
